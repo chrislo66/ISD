@@ -1,0 +1,34 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var Utils_1 = require("./Utils");
+var User = (function () {
+    /**
+    * @hidden
+    */
+    function User(displayableId, name, identityProvider, userIdentifier) {
+        this.displayableId = displayableId;
+        this.name = name;
+        this.identityProvider = identityProvider;
+        this.userIdentifier = userIdentifier;
+    }
+    /**
+    * @hidden
+    */
+    User.createUser = function (idToken, clientInfo, authority) {
+        var uid;
+        var utid;
+        if (!clientInfo) {
+            uid = "";
+            utid = "";
+        }
+        else {
+            uid = clientInfo.uid;
+            utid = clientInfo.utid;
+        }
+        var userIdentifier = Utils_1.Utils.base64EncodeStringUrlSafe(uid) + "." + Utils_1.Utils.base64EncodeStringUrlSafe(utid);
+        return new User(idToken.preferredName, idToken.name, idToken.issuer, userIdentifier);
+    };
+    return User;
+}());
+exports.User = User;
+//# sourceMappingURL=User.js.map

@@ -1,0 +1,128 @@
+import { Utils } from "./Utils";
+export var LogLevel;
+(function (LogLevel) {
+    LogLevel[LogLevel["Error"] = 0] = "Error";
+    LogLevel[LogLevel["Warning"] = 1] = "Warning";
+    LogLevel[LogLevel["Info"] = 2] = "Info";
+    LogLevel[LogLevel["Verbose"] = 3] = "Verbose";
+})(LogLevel || (LogLevel = {}));
+// Singleton Class
+export class Logger {
+    constructor(correlationId) {
+        /**
+        * @hidden
+        */
+        this._level = LogLevel.Info;
+        /**
+        * @hidden
+        */
+        this._piiLoggingEnabled = false;
+        if (Logger._instance) {
+            return Logger._instance;
+        }
+        this._correlationId = correlationId;
+        Logger._instance = this;
+        return Logger._instance;
+    }
+    get correlationId() { return this._correlationId; }
+    set correlationId(correlationId) {
+        this._correlationId = correlationId;
+    }
+    ;
+    get level() { return this._level; }
+    set level(logLevel) {
+        if (LogLevel[logLevel]) {
+            this._level = logLevel;
+        }
+        else
+            throw new Error("Provide a valid value for level. Possibles range for logLevel is 0-3");
+    }
+    ;
+    get piiLoggingEnabled() { return this._piiLoggingEnabled; }
+    set piiLoggingEnabled(piiLoggingEnabled) {
+        this._piiLoggingEnabled = piiLoggingEnabled;
+    }
+    ;
+    get localCallback() { return this._localCallback; }
+    set localCallback(localCallback) {
+        if (this.localCallback) {
+            throw new Error("MSAL logging callback can only be set once per process and should never change once set.");
+        }
+        this._localCallback = localCallback;
+    }
+    ;
+    /**
+    * @hidden
+    */
+    logMessage(logMessage, logLevel, containsPii) {
+        if ((logLevel > this.level) || (!this.piiLoggingEnabled && containsPii)) {
+            return;
+        }
+        var timestamp = new Date().toUTCString();
+        var log;
+        if (!Utils.isEmpty(this.correlationId)) {
+            log = timestamp + ":" + this._correlationId + "-" + Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+        }
+        else {
+            log = timestamp + ":" + Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+        }
+        this.executeCallback(logLevel, log, containsPii);
+    }
+    /**
+    * @hidden
+    */
+    executeCallback(level, message, containsPii) {
+        if (this.localCallback) {
+            this.localCallback(level, message, containsPii);
+        }
+    }
+    /**
+    * @hidden
+    */
+    error(message) {
+        this.logMessage(message, LogLevel.Error, false);
+    }
+    /**
+    * @hidden
+    */
+    errorPii(message) {
+        this.logMessage(message, LogLevel.Error, true);
+    }
+    /**
+    * @hidden
+    */
+    warning(message) {
+        this.logMessage(message, LogLevel.Warning, false);
+    }
+    /**
+    * @hidden
+    */
+    warningPii(message) {
+        this.logMessage(message, LogLevel.Warning, true);
+    }
+    /**
+    * @hidden
+    */
+    info(message) {
+        this.logMessage(message, LogLevel.Info, false);
+    }
+    /**
+    * @hidden
+    */
+    infoPii(message) {
+        this.logMessage(message, LogLevel.Info, true);
+    }
+    /**
+    * @hidden
+    */
+    verbose(message) {
+        this.logMessage(message, LogLevel.Verbose, false);
+    }
+    /**
+    * @hidden
+    */
+    verbosePii(message) {
+        this.logMessage(message, LogLevel.Verbose, true);
+    }
+}
+//# sourceMappingURL=Logger.js.map

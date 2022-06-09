@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "target": "es5",
+    "module": "amd",
+    "lib": [
+      "dom",
+      "es5",
+      "es2015.promise"
+    ],
+    "outFile": "./dist/amd/msalx.js"
+  }
+}

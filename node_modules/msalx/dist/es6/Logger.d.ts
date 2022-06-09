@@ -1,0 +1,76 @@
+export interface ILoggerCallback {
+    (level: LogLevel, message: string, containsPii: boolean): void;
+}
+export declare enum LogLevel {
+    Error = 0,
+    Warning = 1,
+    Info = 2,
+    Verbose = 3,
+}
+export declare class Logger {
+    /**
+    * @hidden
+    */
+    private static _instance;
+    /**
+    * @hidden
+    */
+    private _correlationId;
+    correlationId: string;
+    /**
+    * @hidden
+    */
+    private _level;
+    level: LogLevel;
+    /**
+    * @hidden
+    */
+    private _piiLoggingEnabled;
+    piiLoggingEnabled: boolean;
+    /**
+    * @hidden
+    */
+    private _localCallback;
+    localCallback: ILoggerCallback;
+    constructor(correlationId: string);
+    /**
+    * @hidden
+    */
+    private logMessage(logMessage, logLevel, containsPii);
+    /**
+    * @hidden
+    */
+    executeCallback(level: LogLevel, message: string, containsPii: boolean): void;
+    /**
+    * @hidden
+    */
+    error(message: string): void;
+    /**
+    * @hidden
+    */
+    errorPii(message: string): void;
+    /**
+    * @hidden
+    */
+    warning(message: string): void;
+    /**
+    * @hidden
+    */
+    warningPii(message: string): void;
+    /**
+    * @hidden
+    */
+    info(message: string): void;
+    /**
+    * @hidden
+    */
+    infoPii(message: string): void;
+    /**
+    * @hidden
+    */
+    verbose(message: string): void;
+    /**
+    * @hidden
+    */
+    verbosePii(message: string): void;
+}

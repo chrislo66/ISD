@@ -1,0 +1,148 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var Utils_1 = require("./Utils");
+var LogLevel;
+(function (LogLevel) {
+    LogLevel[LogLevel["Error"] = 0] = "Error";
+    LogLevel[LogLevel["Warning"] = 1] = "Warning";
+    LogLevel[LogLevel["Info"] = 2] = "Info";
+    LogLevel[LogLevel["Verbose"] = 3] = "Verbose";
+})(LogLevel = exports.LogLevel || (exports.LogLevel = {}));
+// Singleton Class
+var Logger = (function () {
+    function Logger(correlationId) {
+        /**
+        * @hidden
+        */
+        this._level = LogLevel.Info;
+        /**
+        * @hidden
+        */
+        this._piiLoggingEnabled = false;
+        if (Logger._instance) {
+            return Logger._instance;
+        }
+        this._correlationId = correlationId;
+        Logger._instance = this;
+        return Logger._instance;
+    }
+    Object.defineProperty(Logger.prototype, "correlationId", {
+        get: function () { return this._correlationId; },
+        set: function (correlationId) {
+            this._correlationId = correlationId;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ;
+    Object.defineProperty(Logger.prototype, "level", {
+        get: function () { return this._level; },
+        set: function (logLevel) {
+            if (LogLevel[logLevel]) {
+                this._level = logLevel;
+            }
+            else
+                throw new Error("Provide a valid value for level. Possibles range for logLevel is 0-3");
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ;
+    Object.defineProperty(Logger.prototype, "piiLoggingEnabled", {
+        get: function () { return this._piiLoggingEnabled; },
+        set: function (piiLoggingEnabled) {
+            this._piiLoggingEnabled = piiLoggingEnabled;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ;
+    Object.defineProperty(Logger.prototype, "localCallback", {
+        get: function () { return this._localCallback; },
+        set: function (localCallback) {
+            if (this.localCallback) {
+                throw new Error("MSAL logging callback can only be set once per process and should never change once set.");
+            }
+            this._localCallback = localCallback;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    ;
+    /**
+    * @hidden
+    */
+    Logger.prototype.logMessage = function (logMessage, logLevel, containsPii) {
+        if ((logLevel > this.level) || (!this.piiLoggingEnabled && containsPii)) {
+            return;
+        }
+        var timestamp = new Date().toUTCString();
+        var log;
+        if (!Utils_1.Utils.isEmpty(this.correlationId)) {
+            log = timestamp + ":" + this._correlationId + "-" + Utils_1.Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+        }
+        else {
+            log = timestamp + ":" + Utils_1.Utils.getLibraryVersion() + "-" + LogLevel[logLevel] + " " + logMessage;
+        }
+        this.executeCallback(logLevel, log, containsPii);
+    };
+    /**
+    * @hidden
+    */
+    Logger.prototype.executeCallback = function (level, message, containsPii) {
+        if (this.localCallback) {
+            this.localCallback(level, message, containsPii);
+        }
+    };
+    /**
+    * @hidden
+    */
+    Logger.prototype.error = function (message) {
+        this.logMessage(message, LogLevel.Error, false);
+    };
+    /**
+    * @hidden
+    */
+    Logger.prototype.errorPii = function (message) {
+        this.logMessage(message, LogLevel.Error, true);
+    };
+    /**
+    * @hidden
+    */
+    Logger.prototype.warning = function (message) {
+        this.logMessage(message, LogLevel.Warning, false);
+    };
+    /**
+    * @hidden
+    */
+    Logger.prototype.warningPii = function (message) {
+        this.logMessage(message, LogLevel.Warning, true);
+    };
+    /**
+    * @hidden
+    */
+    Logger.prototype.info = function (message) {
+        this.logMessage(message, LogLevel.Info, false);
+    };
+    /**
+    * @hidden
+    */
+    Logger.prototype.infoPii = function (message) {
+        this.logMessage(message, LogLevel.Info, true);
+    };
+    /**
+    * @hidden
+    */
+    Logger.prototype.verbose = function (message) {
+        this.logMessage(message, LogLevel.Verbose, false);
+    };
+    /**
+    * @hidden
+    */
+    Logger.prototype.verbosePii = function (message) {
+        this.logMessage(message, LogLevel.Verbose, true);
+    };
+    return Logger;
+}());
+exports.Logger = Logger;
+//# sourceMappingURL=Logger.js.map

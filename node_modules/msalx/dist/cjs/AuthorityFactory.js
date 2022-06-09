@@ -1,0 +1,46 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var Utils_1 = require("./Utils");
+var AadAuthority_1 = require("./AadAuthority");
+var B2cAuthority_1 = require("./B2cAuthority");
+var Authority_1 = require("./Authority");
+var ErrorMessage_1 = require("./ErrorMessage");
+var AuthorityFactory = (function () {
+    function AuthorityFactory() {
+    }
+    /*
+    * Parse the url and determine the type of authority
+    */
+    AuthorityFactory.DetectAuthorityFromUrl = function (authorityUrl) {
+        authorityUrl = Utils_1.Utils.CanonicalizeUri(authorityUrl);
+        var components = Utils_1.Utils.GetUrlComponents(authorityUrl);
+        var pathSegments = components.PathSegments;
+        switch (pathSegments[0]) {
+            case "tfp":
+                return Authority_1.AuthorityType.B2C;
+            case "adfs":
+                return Authority_1.AuthorityType.Adfs;
+            default:
+                return Authority_1.AuthorityType.Aad;
+        }
+    };
+    /*
+    * Create an authority object of the correct type based on the url
+    * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
+    */
+    AuthorityFactory.CreateInstance = function (authorityUrl, validateAuthority) {
+        var type = AuthorityFactory.DetectAuthorityFromUrl(authorityUrl);
+        // Depending on above detection, create the right type.
+        switch (type) {
+            case Authority_1.AuthorityType.B2C:
+                return new B2cAuthority_1.B2cAuthority(authorityUrl, validateAuthority);
+            case Authority_1.AuthorityType.Aad:
+                return new AadAuthority_1.AadAuthority(authorityUrl, validateAuthority);
+            default:
+                throw ErrorMessage_1.ErrorMessage.invalidAuthorityType;
+        }
+    };
+    return AuthorityFactory;
+}());
+exports.AuthorityFactory = AuthorityFactory;
+//# sourceMappingURL=AuthorityFactory.js.map
